@@ -11,6 +11,8 @@ import 'package:restaurant/screens/owner/map_pin_selection_screen.dart';
 import 'package:restaurant/shared/size_config.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+
 
 class EditRestaurantScreen extends StatefulWidget {
   final Restaurant restaurant;
@@ -42,6 +44,7 @@ class _EditRestaurantScreenState extends State<EditRestaurantScreen> {
           'type': _restaurantType,
           'tableCount': _numTables,
           'imageUrl': _imageUrl,
+          'owner': user.uid,
         });
 
         Navigator.pop(context);
@@ -92,6 +95,7 @@ class _EditRestaurantScreenState extends State<EditRestaurantScreen> {
   Widget build(BuildContext context) {
     SizeConfig().init(context);
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: const Text('Edit Restaurant'),
         centerTitle: true,
@@ -229,7 +233,10 @@ class _EditRestaurantScreenState extends State<EditRestaurantScreen> {
                 ),
                 SizedBox(
                   height: SizeConfig.safeBlockVertical! * 35,
-                  child: Image.network(_imageUrl.isNotEmpty ? _imageUrl : ''),
+                  child: _imageUrl.isEmpty
+                      ? SvgPicture.asset('assets/not_found.svg',
+                          semanticsLabel: 'A placeholder image')
+                      : Image.network(_imageUrl),
                 ),
                 const Expanded(child: SizedBox(height: 1)),
                 Center(

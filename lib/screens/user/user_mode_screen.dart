@@ -1,10 +1,10 @@
-// ignore_for_file: depend_on_referenced_packages, library_private_types_in_public_api
+// ignore_for_file: depend_on_referenced_packages, library_private_types_in_public_api, prefer_typing_uninitialized_variables
 
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart' as geolocator;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:restaurant/screens/owner/reservation_options.dart';
+import 'package:restaurant/screens/user/restaurant_details.dart';
 import 'package:restaurant/shared/size_config.dart';
 
 class UserModeScreen extends StatefulWidget {
@@ -32,7 +32,9 @@ class _UserModeScreenState extends State<UserModeScreen> {
   }
 
   Future<List<DocumentSnapshot>> _initialLoadRestaurants() async {
-    return await _getRestaurants();
+    QuerySnapshot snapshot = await _firestore.collection('restaurants').get();
+
+    return snapshot.docs;
   }
 
   void _getCurrentLocation() async {
@@ -62,16 +64,16 @@ class _UserModeScreenState extends State<UserModeScreen> {
       desiredAccuracy: geolocator.LocationAccuracy.high,
     );
 
+    if (!mounted) {
+      return;
+    }
+
     setState(() {
       _userPosition = position;
     });
   }
 
-  Future<List<DocumentSnapshot>> _getRestaurants() async {
-    QuerySnapshot snapshot = await _firestore.collection('restaurants').get();
-
-    return snapshot.docs;
-  }
+  
 
   Future<List<DocumentSnapshot>?> _filterRestaurants() async {
     if (_searchTerm.isEmpty) {
@@ -369,78 +371,4 @@ class _UserModeScreenState extends State<UserModeScreen> {
   }
 }
 
-class RestaurantDetailsScreen extends StatelessWidget {
-  final DocumentSnapshot restaurant;
 
-  const RestaurantDetailsScreen(this.restaurant, {super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    SizeConfig().init(context);
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Restaurant Details'),
-        centerTitle: true,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Image.network(
-              restaurant['imageUrl'].isEmpty
-                  ? 'https://cdn11.bigcommerce.com/s-1812kprzl2/images/stencil/original/products/582/5042/no-image__63632.1665666729.jpg?c=2'
-                  : restaurant['imageUrl'],
-              width: double.infinity,
-              height: SizeConfig.safeBlockVertical! * 30,
-              fit: BoxFit.fill,
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Name: ${restaurant['name']}',
-                    style: const TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                      'Location: ${restaurant['location']!.latitude} N, ${restaurant['location']!.latitude} E'),
-                  Text('Type: ${restaurant['type']}'),
-                ],
-              ),
-            ),
-            Expanded(
-              child: SizedBox(
-                height: SizeConfig.safeBlockVertical! * 22,
-              ),
-            ),
-            Center(
-              child: SizedBox(
-                width: SizeConfig.safeBlockHorizontal! * 65,
-                height: SizeConfig.safeBlockVertical! * 8.5,
-                child: ElevatedButton(
-                  child: Text(
-                    'RESERVE A TABLE',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: SizeConfig.safeBlockVertical! * 2.25),
-                  ),
-                  onPressed: () {
-                    showModalBottomSheet<void>(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return const ReservationOptions();
-                        });
-                  },
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

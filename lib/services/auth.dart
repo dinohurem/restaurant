@@ -8,7 +8,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // Create doctor object based on Firebase user.
+  // Create owner object based on Firebase user.
   Owner? _ownerFromFirebaseUser(User? user) {
     return user != null
         ? Owner(
@@ -21,19 +21,6 @@ class AuthService {
   // Auth change user stream.
   Stream<Owner?> get owner {
     return _auth.authStateChanges().map(_ownerFromFirebaseUser);
-  }
-
-  // Sign in anonymously.
-  Future signInAnon() async {
-    try {
-      UserCredential result = await _auth.signInAnonymously();
-      User? user = result.user;
-      return _ownerFromFirebaseUser(user!);
-    } catch (e) {
-      // ignore: avoid_print
-      print(e.toString());
-      return null;
-    }
   }
 
   // Sign in with email/password.

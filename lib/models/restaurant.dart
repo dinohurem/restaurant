@@ -1,7 +1,9 @@
+// ignore_for_file: depend_on_referenced_packages
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Restaurant {
-  final String? name, type, imageUrl;
+  final String? name, type, imageUrl, owner;
   final int? tableCount;
   final GeoPoint? location;
 
@@ -11,6 +13,7 @@ class Restaurant {
     this.type,
     this.tableCount,
     this.imageUrl,
+    this.owner,
   });
 
   factory Restaurant.fromDocument(DocumentSnapshot documentSnapshot) {
@@ -20,6 +23,7 @@ class Restaurant {
     int tableCount = documentSnapshot.get('tableCount');
     String type = documentSnapshot.get('type');
     String imageUrl = documentSnapshot.get('imageUrl');
+    String owner = documentSnapshot.get('owner');
 
     return Restaurant(
       name: name,
@@ -27,6 +31,7 @@ class Restaurant {
       tableCount: tableCount,
       type: type,
       imageUrl: imageUrl,
+      owner: owner,
     );
   }
 }

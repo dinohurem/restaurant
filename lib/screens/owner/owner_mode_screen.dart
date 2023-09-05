@@ -4,6 +4,8 @@ import 'package:restaurant/screens/owner/registration_screen.dart';
 import 'package:restaurant/shared/size_config.dart';
 
 class OwnerModeScreen extends StatelessWidget {
+  const OwnerModeScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     SizeConfig().init(context);

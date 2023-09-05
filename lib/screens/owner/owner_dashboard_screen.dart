@@ -1,4 +1,4 @@
-// ignore_for_file: depend_on_referenced_packages
+// ignore_for_file: depend_on_referenced_packages, use_key_in_widget_constructors, library_private_types_in_public_api
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -7,10 +7,13 @@ import 'package:restaurant/main.dart';
 import 'package:restaurant/models/restaurant.dart';
 import 'package:restaurant/screens/owner/edit_restaurant_screen.dart';
 import 'package:restaurant/screens/owner/location_screen.dart';
+import 'package:restaurant/screens/owner/reservations_view.dart';
 import 'package:restaurant/services/auth.dart';
 import 'package:restaurant/shared/custom_error_screen.dart';
 import 'package:restaurant/shared/size_config.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+
 
 class OwnerDashboardScreen extends StatefulWidget {
   @override
@@ -23,13 +26,29 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
 
   late Restaurant _restaurant;
 
+  Future<String> fetchRestaurantId() async {
+    String restaurantId = '';
+    User? user = _auth.currentUser;
+    if (user != null) {
+      var snapshots = await _firestore
+          .collection('restaurants')
+          .where("owner", isEqualTo: user.uid)
+          .get();
+
+      restaurantId = snapshots.docs.first.id;
+    }
+    return restaurantId;
+  }
+
   Future<Restaurant> fetchRestaurantDetails() async {
     User? user = _auth.currentUser;
     if (user != null) {
-      DocumentSnapshot restaurantSnapshot =
-          await _firestore.collection('restaurants').doc(user.uid).get();
+      var snapshots = await _firestore
+          .collection('restaurants')
+          .where("owner", isEqualTo: user.uid)
+          .get();
 
-      _restaurant = Restaurant.fromDocument(restaurantSnapshot);
+      _restaurant = Restaurant.fromDocument(snapshots.docs.first);
     }
 
     return _restaurant;
@@ -113,7 +132,10 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
                     SizedBox(
                       height: SizeConfig.safeBlockVertical! * 25,
                       width: SizeConfig.safeBlockHorizontal! * 100,
-                      child: Image.network(
+                      child: restaurant.imageUrl!.isEmpty
+                          ? SvgPicture.asset('assets/not_found.svg',
+                              semanticsLabel: 'A placeholder image')
+                          : Image.network(
                         restaurant.imageUrl!,
                         fit: BoxFit.fill,
                       ),
@@ -239,20 +261,52 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
                         width: SizeConfig.safeBlockHorizontal! * 65,
                         height: SizeConfig.safeBlockVertical! * 10,
                         child: ElevatedButton(
+                          onPressed: () async {
+                            var restaurantId = await fetchRestaurantId();
+
+                            if (!mounted) {
+                              return;
+                            }
+
+                            showModalBottomSheet<void>(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return ReservationsView(
+                                      restaurantId: restaurantId);
+                                });
+                          },
+                          child: Text(
+                            'Manage reservations',
+                            style: TextStyle(
+                              fontSize: SizeConfig.safeBlockVertical! * 2.5,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: SizeConfig.safeBlockVertical! * 1,
+                    ),
+                    Center(
+                      child: SizedBox(
+                        width: SizeConfig.safeBlockHorizontal! * 65,
+                        height: SizeConfig.safeBlockVertical! * 10,
+                        child: ElevatedButton(
                           onPressed: () {
                             // Navigate to the Edit Restaurant Screen
                             Navigator.push(
                               context,
                               MaterialPageRoute(
                                   builder: (context) => EditRestaurantScreen(
-                                        restaurant: _restaurant,
+                                        restaurant: restaurant,
                                       )),
                             ).then((value) {
                               setState(() {});
                             });
                           },
                           child: Text(
-                            'Edit details',
+                            'Edit restaurant',
                             style: TextStyle(
                               fontSize: SizeConfig.safeBlockVertical! * 2.5,
                               color: Colors.white,

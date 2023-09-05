@@ -74,7 +74,7 @@ class AppStartupScreen extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => OwnerModeScreen()),
+                          builder: (context) => const OwnerModeScreen()),
                     );
                   },
                   child: Text(
